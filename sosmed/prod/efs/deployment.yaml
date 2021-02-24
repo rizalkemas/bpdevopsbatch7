@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: sosmed-pesbuk
+spec:
+  selector:
+    matchLabels:
+      run: sosmed-pesbuk
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: sosmed-pesbuk
+    spec:
+      containers:
+      - name: sosmed-pesbuk
+        image: rizalkemas68/sosmed:1.0
+        ports:
+          - containerPort: 80
+        volumeMounts:
+        - name: p-fb-configmap
+          mountPath: /srv/app/config.php
+          subPath: config.php
+        - name: efs
+          mountPath: /foo/bar        
+        env:
+          - name: DB_HOST
+            value: 10.10.1.200
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: db-user-pass
+                key: DB_USER
+          - name: DB_PASS
+            valueFrom:
+              secretKeyRef:
+                name: db-user-pass
+                key: DB_PASS
+      volumes:
+        - name: p-fb-configmap
+          configMap:
+            name: p-fb-configmap
+        - name: efs
+          persistentVolumeClaim:
+            claimName: sandbox-pvc

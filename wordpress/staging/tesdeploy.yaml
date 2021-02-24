@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wp-prod
+  namespace: production
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: tcp-80
+  selector:
+    application: wordpress-blog
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-user-pass
+  namespace: production
+type: Opaque
+data:
+  DB_USER: YWRtaW4=
+  DB_PASS: Njg5NWFndGtlbXM=
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wp-prod
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wp-prod
+  template:
+    metadata:
+      labels:
+        app: wp-prod
+    spec:
+      containers:
+        - name: wp-prod
+          image: wordpress:5.2
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: "/var/www/html/wp-content"
+              subPath: "wp-content"
+              name: wpprod-claim
+          env:
+          - name: DB_HOST
+            value: database-2.cemceonxlenm.us-east-2.rds.amazonaws.com
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: db-user-pass 
+                key: DB_USER
+          - name: DB_PASS
+            valueFrom:
+              secretKeyRef:
+                name: db-user-pass
+                key: DB_PASS
+      volumes:
+        - name: wpprod-claim
+          persistentVolumeClaim:
+            claimName: wpprod-claim
+  

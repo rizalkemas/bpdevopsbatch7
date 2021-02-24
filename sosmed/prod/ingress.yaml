@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+  labels:
+    name: sosmed-pesbuk
+  name: sosmed-pesbuk
+  namespace: default
+spec:
+  rules:
+  - host: domaintest.com
+    http:
+      paths:
+      - backend:
+          serviceName: sosmed-pesbuk
+          servicePort: 80
